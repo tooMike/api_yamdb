@@ -38,7 +38,11 @@ def user_signup(request):
             confirmation_code = user.confirmation_code
         except User.DoesNotExist:
             confirmation_code = create_confirmation_code()
-            user = serializer.save(confirmation_code=confirmation_code)
+            # user = serializer.save(confirmation_code=confirmation_code)
+            user = User.objects.create(
+                **serializer.validated_data,
+                confirmation_code=confirmation_code
+            )
     else:
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -51,6 +55,7 @@ def user_signup(request):
         fail_silently=True,
     )
     return Response(serializer.data, status=status.HTTP_200_OK)
+
 
 
 @api_view(['POST'])
