@@ -118,10 +118,11 @@ REST_FRAMEWORK = {
 }
 
 SIMPLE_JWT = {
-   'AUTH_HEADER_TYPES': ('Bearer',),
+    'AUTH_HEADER_TYPES': ('Bearer',),
 }
 
 AUTH_USER_MODEL = 'users.MyUser'
 
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
+CONFIRMATION_CODE_LENGTH = 6
