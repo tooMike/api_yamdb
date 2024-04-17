@@ -24,7 +24,10 @@ INSTALLED_APPS = [
     'rest_framework',
     'users',
     'api',
-]
+    'django_filters',
+    'reviews.apps.ReviewsConfig',
+    'api.apps.ApiConfig',
+
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -88,7 +91,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 # Internationalization
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'ru-RU'
 
 TIME_ZONE = 'UTC'
 
@@ -126,3 +129,5 @@ AUTH_USER_MODEL = 'users.MyUser'
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 CONFIRMATION_CODE_LENGTH = 6
+
+CUT_STR_LONGER = 30
