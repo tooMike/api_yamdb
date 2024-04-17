@@ -4,12 +4,16 @@ import string
 from django.core.mail import send_mail
 from django.contrib.auth import get_user_model
 from rest_framework import status, viewsets
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.exceptions import NotFound
+from rest_framework import filters
+from rest_framework.pagination import LimitOffsetPagination
+from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from api.serializers import UserAuthSerializer, GetTokenSerializer, UserSerializer
+from api.permissions import AdminOnlyPermission
 
 
 User = get_user_model()
@@ -29,6 +33,7 @@ def create_confirmation_code(size=6, chars=string.ascii_uppercase + string.digit
 
 
 @api_view(['POST'])
+@permission_classes([AllowAny])
 def user_signup(request):
     data = request.data
     serializer = UserAuthSerializer(data=data)
@@ -58,6 +63,7 @@ def user_signup(request):
 
 
 @api_view(['POST'])
+@permission_classes([AllowAny])
 def get_token(request):
     serializer = GetTokenSerializer(data=request.data)
     try:
@@ -74,5 +80,9 @@ def get_token(request):
 class UsersViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
+    permission_classes = (AdminOnlyPermission,)
+    pagination_class = LimitOffsetPagination
+    filter_backends = (filters.SearchFilter,)
+    search_fields = ('username',)
 
     
