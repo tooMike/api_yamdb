@@ -39,7 +39,8 @@ class Command(BaseCommand):
             reader = csv.reader(csvfile)
             field_names = next(reader)  # Получение заголовков
             for row in reader:
-                data = {field_names[i]: row[i] for i in range(len(field_names))}
+                data = {field_names[i]: row[i] for i in range(
+                    len(field_names))}
                 # Распаковываем словарь и создаем объект модели
                 model.objects.create(**data)
 
