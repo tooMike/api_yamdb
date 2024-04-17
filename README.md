@@ -5,6 +5,7 @@
 # Авторы проекта
 
 [Mikhail](https://github.com/tooMike)
+
 [Elvira](https://github.com/Elyablack)
 
 # Установка
