@@ -1,5 +1,8 @@
 from django.contrib.auth import get_user_model
 from django.core.mail import send_mail
+from django.db.models import Avg
+from django.shortcuts import get_object_or_404
+from django_filters.rest_framework.backends import DjangoFilterBackend
 from rest_framework import filters, status, viewsets
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.exceptions import NotFound
@@ -7,29 +10,17 @@ from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
-from api.permissions import AdminOnlyPermission
-from api.serializers import (GetTokenSerializer, MeUserSerializer,
-                             UserAuthSerializer, UserSerializer)
-from api.utils import get_tokens_for_user, create_confirmation_code
-
-
-from django.db.models import Avg
-from django.shortcuts import get_object_or_404
-from django_filters.rest_framework.backends import DjangoFilterBackend
-from rest_framework import permissions
-
-from models import Category, Genre, Title, Review
-from permissions import IsAdminModeratorAuthorReadOnly, IsAdminOrReadOnly
-from .mixins import GetListCreateDeleteViewSet, GetPatchCreateDeleteViewSet
-from .serializers import (
-    CategorySerializer,
-    CommentSerializer,
-    GenreSerializer,
-    ReviewSerializer,
-    TitleReadSerializer,
-    TitleWriteSerializer
-)
-from .filters import TitleFilter
+from api.filters import TitleFilter
+from api.mixins import GetListCreateDeleteViewSet, GetPatchCreateDeleteViewSet
+from api.permissions import (IsAdminModeratorAuthorReadOnly, IsAdminOrReadOnly,
+                             IsSuperUserOrIsAdmin)
+from api.serializers import (CategorySerializer, CommentSerializer,
+                             GenreSerializer, GetTokenSerializer,
+                             MeUserSerializer, ReviewSerializer,
+                             TitleSerializer, UserAuthSerializer,
+                             UserSerializer)
+from api.utils import create_confirmation_code, get_tokens_for_user
+from reviews.models import Category, Genre, Review, Title
 
 
 User = get_user_model()
@@ -89,12 +80,12 @@ class UsersViewSet(viewsets.ModelViewSet):
 
     queryset = User.objects.all()
     serializer_class = UserSerializer
-    permission_classes = (AdminOnlyPermission,)
+    permission_classes = (IsSuperUserOrIsAdmin,)
     pagination_class = LimitOffsetPagination
     filter_backends = (filters.SearchFilter,)
     search_fields = ("username",)
     lookup_field = "username"
-    http_method_names = ["get", "post", "patch", "delete", "head", "options"]
+    http_method_names = ["get", "post", "patch", "delete"]
 
 
 class MeUserViewSet(viewsets.ModelViewSet):
@@ -105,16 +96,17 @@ class MeUserViewSet(viewsets.ModelViewSet):
 
     queryset = User.objects.all()
     serializer_class = MeUserSerializer
-    http_method_names = ["get", "patch", "head", "options"]
+    http_method_names = ["get", "patch"]
 
     def get_object(self):
         """Получить объект текущего пользователя."""
         return self.request.user
-    
+
+
 class CategoryViewSet(GetListCreateDeleteViewSet):
     """Получение списка всех категорий."""
 
-    queryset = Category.objects.all()
+    queryset = Category.objects.all().order_by('name')
     serializer_class = CategorySerializer
     permission_classes = (IsAdminOrReadOnly,)
 
@@ -122,7 +114,7 @@ class CategoryViewSet(GetListCreateDeleteViewSet):
 class GenreViewSet(GetListCreateDeleteViewSet):
     """Получение списка всех жанров."""
 
-    queryset = Genre.objects.all()
+    queryset = Genre.objects.all().order_by('name')
     serializer_class = GenreSerializer
     permission_classes = (IsAdminOrReadOnly,)
 
@@ -132,15 +124,11 @@ class TitleViewSet(GetPatchCreateDeleteViewSet):
 
     queryset = Title.objects.all().annotate(
         Avg('reviews__score')
-    )
+    ).order_by('-year')
+    serializer_class = TitleSerializer
     permission_classes = (IsAdminOrReadOnly,)
     filter_backends = (DjangoFilterBackend,)
     filterset_class = TitleFilter
-
-    def get_serializer_class(self):
-        if self.request.method in permissions.SAFE_METHODS:
-            return TitleReadSerializer
-        return TitleWriteSerializer
 
 
 class ReviewViewSet(GetPatchCreateDeleteViewSet):
@@ -150,6 +138,7 @@ class ReviewViewSet(GetPatchCreateDeleteViewSet):
     permission_classes = (IsAdminModeratorAuthorReadOnly,)
 
     def get_title(self):
+        """Получаем соответствующий Title."""
         return get_object_or_404(
             Title,
             id=self.kwargs.get('title_id')

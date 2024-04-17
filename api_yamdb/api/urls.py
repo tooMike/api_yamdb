@@ -1,19 +1,12 @@
 from django.urls import include, path
-from rest_framework.routers import SimpleRouter
 from rest_framework import routers
+from rest_framework.routers import SimpleRouter
 
-from api import views
-from .views import (
-    CategoryViewSet,
-    CommentViewSet,
-    GenreViewSet,
-    ReviewViewSet,
-    TitleViewSet,
-    UsersViewSet
-)
+from api.views import (CategoryViewSet, CommentViewSet, GenreViewSet,
+                       MeUserViewSet, ReviewViewSet, TitleViewSet,
+                       UsersViewSet, get_token, user_signup)
 
 app_name = 'api'
-
 
 router_v1 = routers.DefaultRouter()
 router_v1.register(
@@ -32,13 +25,13 @@ router_v1.register('titles', TitleViewSet, basename='titles')
 router_v1.register('users', UsersViewSet, basename='users')
 
 urlpatterns = [
-    path("v1/auth/signup/", views.user_signup, name="user_signup"),
-    path("v1/auth/token/", views.get_token, name="get_token"),
+    path("v1/auth/signup/", user_signup, name="user_signup"),
+    path("v1/auth/token/", get_token, name="get_token"),
     path(
         "v1/users/me/",
-        views.MeUserViewSet.as_view(
+        MeUserViewSet.as_view(
             {"get": "retrieve", "patch": "partial_update"}),
         name="me_user",
     ),
-    path("v1/", include(router.urls)),
+    path("v1/", include(router_v1.urls)),
 ]

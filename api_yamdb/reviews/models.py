@@ -5,11 +5,12 @@ from django.db import models
 
 from .validators import validate_year
 
+
 User = get_user_model()
 
 
 class BasePost(models.Model):
-    """Базовая абстрактная модель для наследования в ревью и комментариях"""
+    """Базовая абстрактная модель для наследования в ревью и комментариях."""
     author = models.ForeignKey(
         to=User, on_delete=models.CASCADE, verbose_name='Автор'
     )
@@ -27,7 +28,7 @@ class BasePost(models.Model):
 
 
 class ModelForCategoryGenre(models.Model):
-    """Базовая абстрактная модель для наследования в категориях и жанрах"""
+    """Базовая абстрактная модель для наследования в категориях и жанрах."""
     name = models.CharField(max_length=256, verbose_name='Имя')
     slug = models.SlugField(max_length=50, unique=True)
 
@@ -138,4 +139,3 @@ class GenreTitle(models.Model):
 
     def __str__(self):
         return f'{self.genre} {self.title}'
-    
