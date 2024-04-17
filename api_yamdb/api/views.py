@@ -12,7 +12,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from api.serializers import UserAuthSerializer, GetTokenSerializer, UserSerializer
+from api.serializers import UserAuthSerializer, GetTokenSerializer, UserSerializer, MeUserSerializer
 from api.permissions import AdminOnlyPermission
 
 
@@ -84,5 +84,20 @@ class UsersViewSet(viewsets.ModelViewSet):
     pagination_class = LimitOffsetPagination
     filter_backends = (filters.SearchFilter,)
     search_fields = ('username',)
+    lookup_field = 'username'
+    http_method_names = ['get', 'post', 'patch', 'delete', 'head', 'options']
+
+
+class MeUserViewSet(viewsets.ModelViewSet):
+    queryset = User.objects.all()
+    serializer_class = MeUserSerializer
+    http_method_names = ['get', 'patch', 'head', 'options']
+
+    def get_object(self):
+        """Получить объект текущего пользователя."""
+        return self.request.user
+
+
+
 
     

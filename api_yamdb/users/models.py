@@ -6,6 +6,7 @@ from users.constants import CHOICES
 
 
 class MyUser(AbstractUser):
+    username = models.SlugField(max_length=150, unique=True,)
     bio = models.TextField('Биография', blank=True)
     role = models.CharField(
         'Роль', max_length=50, choices=CHOICES, default='user'

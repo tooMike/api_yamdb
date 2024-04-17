@@ -1,26 +1,17 @@
 from django.contrib.auth import get_user_model
-from django.core.validators import RegexValidator
 from rest_framework import serializers
 from rest_framework.exceptions import NotFound
 from django.core.exceptions import ValidationError
-
+from rest_framework.validators import UniqueValidator
 
 from users.constants import CHOICES
-
-username_validator = RegexValidator(
-    regex=r'^[\w.@+-]+\Z',
-    message="Invalid characters in username. Only alphanumeric and .@+-_ characters are allowed."
-)
 
 
 User = get_user_model()
 
 
 class UserAuthSerializer(serializers.Serializer):
-    username = serializers.CharField(
-        max_length=150,
-        validators=[username_validator]
-    )
+    username = serializers.SlugField(max_length=150,)
     email = serializers.EmailField(max_length=254)
 
     def validate_username(self, value):
@@ -73,8 +64,8 @@ class GetTokenSerializer(serializers.ModelSerializer):
 
 
 class UserSerializer(serializers.ModelSerializer):
-    username = serializers.CharField(max_length=150, validators=[username_validator])
-    email = serializers.EmailField(max_length=254)
+    username = serializers.SlugField(max_length=150, validators=[UniqueValidator(queryset=User.objects.all())])
+    email = serializers.EmailField(max_length=254, validators=[UniqueValidator(queryset=User.objects.all())])
     first_name = serializers.CharField(max_length=150, required=False)
     last_name = serializers.CharField(max_length=150, required=False)
     bio = serializers.CharField(required=False)
@@ -89,5 +80,19 @@ class UserSerializer(serializers.ModelSerializer):
         if value == 'me':
             raise serializers.ValidationError('Недопустимое значение username: me')
         return value
+    
+
+
+class MeUserSerializer(serializers.ModelSerializer):
+    username = serializers.SlugField(max_length=150)
+    email = serializers.EmailField(max_length=254)
+    first_name = serializers.CharField(max_length=150, required=False)
+    last_name = serializers.CharField(max_length=150, required=False)
+    bio = serializers.CharField(required=False)
+    role = serializers.ChoiceField(choices=CHOICES, required=False, read_only=True)
+
+    class Meta:
+        model = User
+        fields = ('username', 'email', 'first_name', 'last_name', 'bio', 'role')
     
 
