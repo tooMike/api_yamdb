@@ -3,13 +3,13 @@ import string
 
 from django.core.mail import send_mail
 from django.contrib.auth import get_user_model
-from rest_framework import status
+from rest_framework import status, viewsets
 from rest_framework.decorators import api_view
 from rest_framework.exceptions import NotFound
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from api.serializers import UserAuthSerializer, GetTokenSerializer
+from api.serializers import UserAuthSerializer, GetTokenSerializer, UserSerializer
 
 
 User = get_user_model()
@@ -38,7 +38,6 @@ def user_signup(request):
             confirmation_code = user.confirmation_code
         except User.DoesNotExist:
             confirmation_code = create_confirmation_code()
-            # user = serializer.save(confirmation_code=confirmation_code)
             user = User.objects.create(
                 **serializer.validated_data,
                 confirmation_code=confirmation_code
@@ -70,4 +69,10 @@ def get_token(request):
     user = serializer.validated_data['user']
     token = get_tokens_for_user(user)
     return Response(token, status=status.HTTP_200_OK)
+
+
+class UsersViewSet(viewsets.ModelViewSet):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+
     

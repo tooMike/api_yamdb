@@ -2,11 +2,7 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 
 
-CHOICES = [
-    ('user', 'Пользователь'),
-    ('moderator', 'Модератор'),
-    ('admin', 'Админ')
-]
+from users.constants import CHOICES
 
 
 class MyUser(AbstractUser):

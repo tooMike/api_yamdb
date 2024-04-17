@@ -4,25 +4,17 @@ from rest_framework import serializers
 from rest_framework.exceptions import NotFound
 from django.core.exceptions import ValidationError
 
+
+from users.constants import CHOICES
+
 username_validator = RegexValidator(
     regex=r'^[\w.@+-]+\Z',
     message="Invalid characters in username. Only alphanumeric and .@+-_ characters are allowed."
 )
 
 
-
 User = get_user_model()
 
-# class UserAuthSerializer(serializers.ModelSerializer):
-
-#     class Meta:
-#         model = User
-#         fields = ('email', 'username')
-
-#     def validate(self, data):
-#         if data['username'] == 'me':
-#             raise serializers.ValidationError('Недопустимое значение username')
-#         return data
 
 class UserAuthSerializer(serializers.Serializer):
     username = serializers.CharField(
@@ -32,9 +24,9 @@ class UserAuthSerializer(serializers.Serializer):
     email = serializers.EmailField(max_length=254)
 
     def validate_username(self, value):
-        # Проверка на специфическое недопустимое значение
+        # Проверка на недопустимое значение me
         if value == 'me':
-            raise serializers.ValidationError('Недопустимое значение username: "me"')
+            raise serializers.ValidationError('Недопустимое значение username: me')
         return value
     
     def validate(self, data):
@@ -58,10 +50,6 @@ class UserAuthSerializer(serializers.Serializer):
 
         return data
 
-        
-        
-
-
 
 class GetTokenSerializer(serializers.ModelSerializer):
 
@@ -83,5 +71,23 @@ class GetTokenSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError('Код подтверждения не найден для данного пользователя')
         return data
 
+
+class UserSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(max_length=150, validators=[username_validator])
+    email = serializers.EmailField(max_length=254)
+    first_name = serializers.CharField(max_length=150, required=False)
+    last_name = serializers.CharField(max_length=150, required=False)
+    bio = serializers.CharField(required=False)
+    role = serializers.ChoiceField(choices=CHOICES, required=False)
+
+    class Meta:
+        model = User
+        fields = ('username', 'email', 'first_name', 'last_name', 'bio', 'role')
+
+    def validate_username(self, value):
+        # Проверка на недопустимое значение me
+        if value == 'me':
+            raise serializers.ValidationError('Недопустимое значение username: me')
+        return value
     
 
