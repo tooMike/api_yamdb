@@ -2,17 +2,12 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 
 from users.constants import CHOICES
-from users.validators import username_validator
 
 
 class MyUser(AbstractUser):
     """Измененная модель юзера."""
 
-    username = models.CharField(
-        max_length=150,
-        unique=True,
-        validators=[username_validator]
-    )
+    username = models.SlugField(max_length=150, unique=True,)
     bio = models.TextField('Биография', blank=True)
     role = models.CharField(
         'Роль', max_length=50, choices=CHOICES, default='user'

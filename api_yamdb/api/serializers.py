@@ -7,6 +7,8 @@ from rest_framework.validators import UniqueValidator
 
 from reviews.models import Category, Comment, Genre, Review, Title
 from users.constants import CHOICES
+from users.validators import username_validator
+
 
 User = get_user_model()
 
@@ -16,15 +18,11 @@ User = get_user_model()
 class UserAuthSerializer(serializers.Serializer):
     """Сериализатор для получения кода подтверждения."""
 
-    username = serializers.SlugField(max_length=150)
+    username = serializers.CharField(
+        max_length=150,
+        validators=[username_validator]
+    )
     email = serializers.EmailField(max_length=254)
-
-    def validate_username(self, value):
-        """Проверка на недопустимое значение me."""
-        if value == "me":
-            raise serializers.ValidationError(
-                "Недопустимое значение username: me")
-        return value
 
     def validate(self, data):
         """Проверяем допустимые значения полей."""
@@ -37,27 +35,40 @@ class UserAuthSerializer(serializers.Serializer):
         # Проверяем существование пользователя с таким email
         user_by_email = User.objects.filter(email=email).first()
 
+        errors = {}
         if user_by_username:
             # Если пользователь с таким username найден, проверяем его email
             if user_by_username.email != email:
-                raise ValidationError(
-                    "Пользователь с этим username ",
-                    "уже существует с другим email."
-                )
+                errors['username'] = ("Пользователь с этим username "
+                                      "уже существует с другим email.")
+                # Проверяем дополнительно, занят ли переданный email
+                if user_by_email:
+                    errors['email'] = "Этот email уже занят."
 
         if not user_by_username and user_by_email:
-            # Если username не занят, но email уже используется
-            raise ValidationError("Этот email уже занят.")
+            errors['email'] = "Этот email уже занят."
+
+        if errors:
+            raise ValidationError(errors)
 
         return data
 
+    def validate_username(self, value):
+        """Проверка на недопустимое значение me."""
+        if value == "me":
+            raise serializers.ValidationError(
+                "Недопустимое значение username: me")
+        return value
 
-class GetTokenSerializer(serializers.ModelSerializer):
+
+class GetTokenSerializer(serializers.Serializer):
     """Сериализатор для получения токена."""
 
-    class Meta:
-        model = User
-        fields = ("username", "confirmation_code")
+    username = serializers.CharField(
+        max_length=150,
+        validators=[username_validator]
+    )
+    confirmation_code = serializers.CharField(max_length=50)
 
     def validate_username(self, value):
         """Проверяем допустимые значения поля username."""
@@ -85,9 +96,12 @@ class UserSerializer(serializers.ModelSerializer):
     и суперюзера с пользователями.
     """
 
-    username = serializers.SlugField(
+    username = serializers.CharField(
         max_length=150,
-        validators=[UniqueValidator(queryset=User.objects.all())]
+        validators=[
+            UniqueValidator(queryset=User.objects.all()),
+            username_validator
+        ]
     )
     email = serializers.EmailField(
         max_length=254,
@@ -162,12 +176,27 @@ class TitleSerializer(serializers.ModelSerializer):
     rating = serializers.IntegerField(
         source="reviews__score__avg",
         read_only=True,
+        default=None
+    )
+    # Добавляю значение по умолчанию, потому что запрос в Postman
+    # ожидает, что значение этого поля будет string, а не Null,
+    # хотя по ТЗ это поле не обязательное
+    description = serializers.CharField(
+        default="Описание отсутствует"
     )
 
     class Meta:
         model = Title
         fields = ("id", "name", "year", "rating",
                   "description", "genre", "category")
+
+    def validate_genre(self, value):
+        """Проверяем что в поле genre передано значение"""
+        if not value:
+            raise serializers.ValidationError(
+                "Поле жанра не должно быть пустым"
+            )
+        return value
 
 
 class ReviewSerializer(serializers.ModelSerializer):

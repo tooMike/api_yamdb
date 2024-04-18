@@ -33,11 +33,12 @@ def user_signup(request):
     data = request.data
     serializer = UserAuthSerializer(data=data)
     if serializer.is_valid():
+        confirmation_code = create_confirmation_code()
         try:
             user = User.objects.get(**serializer.validated_data)
-            confirmation_code = user.confirmation_code
+            user.confirmation_code = confirmation_code
+            user.save()
         except User.DoesNotExist:
-            confirmation_code = create_confirmation_code()
             user = User.objects.create(
                 **serializer.validated_data,
                 confirmation_code=confirmation_code
@@ -67,7 +68,7 @@ def get_token(request):
         return Response({"Ошибка": str(e)}, status=status.HTTP_404_NOT_FOUND)
     except Exception as e:
         return Response({"Ошибка": str(e)}, status=status.HTTP_400_BAD_REQUEST)
-    user = serializer.validated_data["user"]
+    user = User.objects.get(username=serializer.validated_data["username"])
     token = get_tokens_for_user(user)
     return Response(token, status=status.HTTP_200_OK)
 
