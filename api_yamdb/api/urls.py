@@ -2,7 +2,7 @@ from django.urls import include, path
 from rest_framework import routers
 
 from api.views import (CategoryViewSet, CommentViewSet, GenreViewSet,
-                       MeUserViewSet, ReviewViewSet, TitleViewSet,
+                       ReviewViewSet, TitleViewSet,
                        UsersViewSet, get_token, user_signup)
 
 app_name = 'api'
@@ -26,11 +26,11 @@ router_v1.register('users', UsersViewSet, basename='users')
 urlpatterns = [
     path("v1/auth/signup/", user_signup, name="user_signup"),
     path("v1/auth/token/", get_token, name="get_token"),
-    path(
-        "v1/users/me/",
-        MeUserViewSet.as_view(
-            {"get": "retrieve", "patch": "partial_update"}),
-        name="me_user",
-    ),
+    # path(
+    #     "v1/users/me/",
+    #     MeUserViewSet.as_view(
+    #         {"get": "retrieve", "patch": "partial_update"}),
+    #     name="me_user",
+    # ),
     path("v1/", include(router_v1.urls)),
 ]

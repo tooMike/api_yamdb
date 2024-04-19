@@ -4,7 +4,16 @@ from django.contrib.auth import get_user_model
 from django.core.management.base import BaseCommand
 from django.apps import apps
 
-User = get_user_model()
+
+triples = [
+    "users:YamdbUser:static/data/users.csv",
+    "reviews:Category:static/data/category.csv",
+    "reviews:Genre:static/data/genre.csv",
+    "reviews:Title:static/data/titles.csv",
+    "reviews:GenreTitle:static/data/genre_title.csv",
+    "reviews:Review:static/data/review.csv",
+    "reviews:Comment:static/data/comments.csv",
+]
 
 
 class Command(BaseCommand):
@@ -12,17 +21,7 @@ class Command(BaseCommand):
             'Пример команды: python manage.py import_data ',
             '"Model1:path/to/file1.csv" "Model2:path/to/file2.csv"')
 
-    def add_arguments(self, parser):
-        parser.add_argument(
-            'app_model_file_triples',
-            nargs='+', type=str,
-            help=('Перечислите: приложения, модели и пути к файлам csv ',
-                  '(app_name:model_name:path/to/file.csv)')
-        )
-
     def handle(self, *args, **options):
-        triples = options['app_model_file_triples']
-
         for triple in triples:
             parts = triple.split(':')
             if len(parts) == 3:

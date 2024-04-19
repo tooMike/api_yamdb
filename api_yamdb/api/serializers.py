@@ -1,14 +1,14 @@
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
+from django.core.mail import send_mail
+from django.shortcuts import get_object_or_404
 from rest_framework import serializers
-from rest_framework.exceptions import NotFound
 from rest_framework.relations import SlugRelatedField
-from rest_framework.validators import UniqueValidator
 
+from api.utils import create_confirmation_code
 from reviews.models import Category, Comment, Genre, Review, Title
-from users.constants import CHOICES
+from users.constants import Roles
 from users.validators import username_validator
-
 
 User = get_user_model()
 
@@ -20,7 +20,7 @@ class UserAuthSerializer(serializers.Serializer):
 
     username = serializers.CharField(
         max_length=150,
-        validators=[username_validator]
+        validators=(username_validator,)
     )
     email = serializers.EmailField(max_length=254)
 
@@ -53,12 +53,20 @@ class UserAuthSerializer(serializers.Serializer):
 
         return data
 
-    def validate_username(self, value):
-        """Проверка на недопустимое значение me."""
-        if value == "me":
-            raise serializers.ValidationError(
-                "Недопустимое значение username: me")
-        return value
+    def create(self, validated_data):
+        confirmation_code = create_confirmation_code()
+        user, created = User.objects.get_or_create(**validated_data)
+        user.confirmation_code = confirmation_code
+        user.save()
+
+        send_mail(
+            subject="Регистрация в YaMDB",
+            message=f"Код подтверждения: {confirmation_code}",
+            from_email="from@example.com",
+            recipient_list=(user.email,),
+            fail_silently=True,
+        )
+        return user
 
 
 class GetTokenSerializer(serializers.Serializer):
@@ -66,27 +74,14 @@ class GetTokenSerializer(serializers.Serializer):
 
     username = serializers.CharField(
         max_length=150,
-        validators=[username_validator]
+        validators=(username_validator,)
     )
     confirmation_code = serializers.CharField(max_length=50)
 
-    def validate_username(self, value):
-        """Проверяем допустимые значения поля username."""
-        if not User.objects.filter(username=value).exists():
-            raise NotFound("Username not found")
-        return value
-
     def validate(self, data):
-        try:
-            confirmation_code = User.objects.get(username=data["username"])
-            if confirmation_code.confirmation_code != data[
-                "confirmation_code"
-            ]:
-                raise serializers.ValidationError("Переданы неверные данные")
-        except User.DoesNotExist:
-            raise serializers.ValidationError(
-                "Код подтверждения не найден для данного пользователя"
-            )
+        user = get_object_or_404(User, username=data["username"])
+        if user.confirmation_code != data["confirmation_code"]:
+            raise serializers.ValidationError("Переданы неверные данные")
         return data
 
 
@@ -96,33 +91,10 @@ class UserSerializer(serializers.ModelSerializer):
     и суперюзера с пользователями.
     """
 
-    username = serializers.CharField(
-        max_length=150,
-        validators=[
-            UniqueValidator(queryset=User.objects.all()),
-            username_validator
-        ]
-    )
-    email = serializers.EmailField(
-        max_length=254,
-        validators=[UniqueValidator(queryset=User.objects.all())]
-    )
-    first_name = serializers.CharField(max_length=150, required=False)
-    last_name = serializers.CharField(max_length=150, required=False)
-    bio = serializers.CharField(required=False)
-    role = serializers.ChoiceField(choices=CHOICES, required=False)
-
     class Meta:
         model = User
         fields = ("username", "email", "first_name",
                   "last_name", "bio", "role")
-
-    def validate_username(self, value):
-        """Проверяем на недопустимое значение username: me."""
-        if value == "me":
-            raise serializers.ValidationError(
-                "Недопустимое значение username: me")
-        return value
 
 
 class MeUserSerializer(UserSerializer):
@@ -132,7 +104,7 @@ class MeUserSerializer(UserSerializer):
     """
 
     role = serializers.ChoiceField(
-        choices=CHOICES, required=False, read_only=True)
+        choices=Roles.choices, required=False, read_only=True)
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -174,16 +146,15 @@ class TitleSerializer(serializers.ModelSerializer):
         slug_field="slug",
     )
     rating = serializers.IntegerField(
-        source="reviews__score__avg",
         read_only=True,
         default=None
     )
     # Добавляю значение по умолчанию, потому что запрос в Postman
     # ожидает, что значение этого поля будет string, а не Null,
     # хотя по ТЗ это поле не обязательное
-    description = serializers.CharField(
-        default="Описание отсутствует"
-    )
+    # description = serializers.CharField(
+    #     default="Описание отсутствует"
+    # )
 
     class Meta:
         model = Title
@@ -209,18 +180,16 @@ class ReviewSerializer(serializers.ModelSerializer):
     )
 
     def validate(self, data):
-        author = self.context.get("request").user
-        title_id = self.context.get("view").kwargs.get("title_id")
-        if (
-            self.context.get("request").method == "POST"
-            and Review.objects.filter(
-                author=author,
-                title__id=title_id
-            ).exists()
-        ):
-            raise serializers.ValidationError(
-                "Можно написать только один обзор к произведению"
-            )
+        if self.context.get("request").method == "POST":
+            author = self.context.get("request").user
+            title_id = self.context.get("view").kwargs.get("title_id")
+            if Review.objects.filter(
+                    author=author,
+                    title__id=title_id
+            ).exists():
+                raise serializers.ValidationError(
+                    "Можно написать только один обзор к произведению"
+                )
         return data
 
     class Meta:

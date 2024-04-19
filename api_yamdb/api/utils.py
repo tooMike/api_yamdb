@@ -1,21 +1,22 @@
 import random
 import string
 
-from django.conf import settings
-from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.tokens import AccessToken
+
+from users.constants import CONFIRMATION_CODE_LENGTH
 
 
 def get_tokens_for_user(user):
     """Получаем токен для пользователя."""
-    refresh = RefreshToken.for_user(user)
+    access = AccessToken.for_user(user)
 
     return {
-        "token": str(refresh.access_token)
+        "token": str(access)
     }
 
 
 def create_confirmation_code(
-    size=settings.CONFIRMATION_CODE_LENGTH,
+    size=CONFIRMATION_CODE_LENGTH,
     chars=string.ascii_uppercase + string.digits
 ):
     """Генерируем код подтверждения."""

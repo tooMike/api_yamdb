@@ -124,10 +124,6 @@ SIMPLE_JWT = {
     'AUTH_HEADER_TYPES': ('Bearer',),
 }
 
-AUTH_USER_MODEL = 'users.MyUser'
+AUTH_USER_MODEL = 'users.YamdbUser'
 
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-
-CONFIRMATION_CODE_LENGTH = 6
-
-CUT_STR_LONGER = 30
