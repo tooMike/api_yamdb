@@ -1,7 +1,5 @@
 from django.contrib.auth import get_user_model
-from django.core.mail import send_mail
 from django.db.models import Avg
-from django.http import Http404
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework.backends import DjangoFilterBackend
 from rest_framework import filters, status, viewsets
@@ -19,9 +17,8 @@ from api.serializers import (CategorySerializer, CommentSerializer,
                              MeUserSerializer, ReviewSerializer,
                              TitleSerializer, UserAuthSerializer,
                              UserSerializer)
-from api.utils import create_confirmation_code, get_tokens_for_user
+from api.user_auth_utils import get_tokens_for_user
 from reviews.models import Category, Genre, Review, Title
-
 
 User = get_user_model()
 
@@ -53,7 +50,6 @@ def get_token(request):
         "Ошибка: введены неверные данные",
         status=status.HTTP_400_BAD_REQUEST
     )
-    
 
 
 class UsersViewSet(viewsets.ModelViewSet):
@@ -101,7 +97,9 @@ class UsersViewSet(viewsets.ModelViewSet):
         user = self.request.user
         serializer = self.get_serializer(user)
         if request.method == 'PATCH':
-            serializer = self.get_serializer(user, data=request.data, partial=True)
+            serializer = self.get_serializer(
+                user, data=request.data, partial=True
+            )
             if serializer.is_valid():
                 serializer.save()
                 return Response(serializer.data)

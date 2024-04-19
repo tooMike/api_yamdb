@@ -5,7 +5,7 @@ from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 from rest_framework.relations import SlugRelatedField
 
-from api.utils import create_confirmation_code
+from api.user_auth_utils import create_confirmation_code
 from reviews.models import Category, Comment, Genre, Review, Title
 from users.constants import Roles
 from users.validators import username_validator
@@ -149,12 +149,6 @@ class TitleSerializer(serializers.ModelSerializer):
         read_only=True,
         default=None
     )
-    # Добавляю значение по умолчанию, потому что запрос в Postman
-    # ожидает, что значение этого поля будет string, а не Null,
-    # хотя по ТЗ это поле не обязательное
-    # description = serializers.CharField(
-    #     default="Описание отсутствует"
-    # )
 
     class Meta:
         model = Title

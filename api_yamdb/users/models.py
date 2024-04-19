@@ -36,7 +36,6 @@ class YamdbUser(AbstractUser):
         """Возвращает True, если у пользователя права администратора."""
         return self.role == Roles.ADMIN or self.is_superuser or self.is_staff
 
-
     @property
     def is_moderator(self):
         """Возвращает True, если у пользователя права модератора."""

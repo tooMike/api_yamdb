@@ -1,8 +1,7 @@
 import csv
 
-from django.contrib.auth import get_user_model
-from django.core.management.base import BaseCommand
 from django.apps import apps
+from django.core.management.base import BaseCommand
 
 
 triples = [
