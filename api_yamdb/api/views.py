@@ -63,14 +63,6 @@ class UsersViewSet(viewsets.ModelViewSet):
     lookup_field = "username"
     http_method_names = ("get", "post", "patch", "delete")
 
-    def get_permissions(self):
-        """
-        Задаем разные разрешения для эндпоинта me и остальных эндпоинтов.
-        """
-        if self.action == "me":
-            return (IsAuthenticated(),)
-        return super().get_permissions()
-
     def get_serializer_class(self):
         """
         Задаем разные сериализаторы для эндпоинта me и остальных эндпоинтов.
@@ -79,7 +71,11 @@ class UsersViewSet(viewsets.ModelViewSet):
             return MeUserSerializer
         return super().get_serializer_class()
 
-    @action(detail=False, methods=("get", "patch"))
+    @action(
+        detail=False,
+        methods=("get", "patch"),
+        permission_classes=(IsAuthenticated,)
+    )
     def me(self, request):
         """
         Метод для просмотра и редактирования пользователем информации о себе.
