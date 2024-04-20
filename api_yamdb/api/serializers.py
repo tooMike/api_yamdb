@@ -7,7 +7,7 @@ from rest_framework.relations import SlugRelatedField
 
 from api.user_auth_utils import create_confirmation_code
 from reviews.models import Category, Comment, Genre, Review, Title
-from users.constants import Roles
+from users.constants import USERNAME_MAX_LENGTH, Roles
 from users.validators import username_validator
 
 User = get_user_model()
@@ -19,7 +19,7 @@ class UserAuthSerializer(serializers.Serializer):
     """Сериализатор для получения кода подтверждения."""
 
     username = serializers.CharField(
-        max_length=150,
+        max_length=USERNAME_MAX_LENGTH,
         validators=(username_validator,)
     )
     email = serializers.EmailField(max_length=254)
@@ -73,7 +73,7 @@ class GetTokenSerializer(serializers.Serializer):
     """Сериализатор для получения токена."""
 
     username = serializers.CharField(
-        max_length=150,
+        max_length=USERNAME_MAX_LENGTH,
         validators=(username_validator,)
     )
     confirmation_code = serializers.CharField(max_length=50)
@@ -169,7 +169,6 @@ class ReviewSerializer(serializers.ModelSerializer):
 
     author = serializers.SlugRelatedField(
         slug_field="username",
-        default=serializers.CurrentUserDefault(),
         read_only=True,
     )
 
@@ -196,7 +195,6 @@ class CommentSerializer(serializers.ModelSerializer):
 
     author = serializers.SlugRelatedField(
         slug_field="username",
-        default=serializers.CurrentUserDefault(),
         read_only=True,
     )
 

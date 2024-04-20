@@ -29,8 +29,8 @@ def user_signup(request):
     """Представление для получения кода подтверждения."""
     data = request.data
     serializer = UserAuthSerializer(data=data)
-    if serializer.is_valid(raise_exception=True):
-        serializer.save()
+    serializer.is_valid(raise_exception=True)
+    serializer.save()
     return Response(serializer.data, status=status.HTTP_200_OK)
 
 
@@ -39,17 +39,13 @@ def user_signup(request):
 def get_token(request):
     """Представление для получения токена."""
     serializer = GetTokenSerializer(data=request.data)
-    if serializer.is_valid():
-        user = get_object_or_404(
-            User,
-            username=serializer.validated_data["username"]
-        )
-        token = get_tokens_for_user(user)
-        return Response(token, status=status.HTTP_200_OK)
-    return Response(
-        "Ошибка: введены неверные данные",
-        status=status.HTTP_400_BAD_REQUEST
+    serializer.is_valid(raise_exception=True)
+    user = get_object_or_404(
+        User,
+        username=serializer.validated_data["username"]
     )
+    token = get_tokens_for_user(user)
+    return Response(token, status=status.HTTP_200_OK)
 
 
 class UsersViewSet(viewsets.ModelViewSet):
@@ -71,7 +67,7 @@ class UsersViewSet(viewsets.ModelViewSet):
         """
         Задаем разные разрешения для эндпоинта me и остальных эндпоинтов.
         """
-        if self.action == 'me':
+        if self.action == "me":
             return (IsAuthenticated(),)
         return super().get_permissions()
 
@@ -79,45 +75,38 @@ class UsersViewSet(viewsets.ModelViewSet):
         """
         Задаем разные сериализаторы для эндпоинта me и остальных эндпоинтов.
         """
-        if self.action == 'me':
+        if self.action == "me":
             return MeUserSerializer
         return super().get_serializer_class()
 
-    @action(detail=False, methods=("get", "patch", "delete", "post"))
+    @action(detail=False, methods=("get", "patch"))
     def me(self, request):
         """
         Метод для просмотра и редактирования пользователем информации о себе.
         """
-        # Задаем явный вызов ошибок при методах DELETE и POST потому что
-        # иначе возвращается 403 ошибка, а тесты ожидают 405, т.е. более
-        # логичный вариант изменить список разрешенных методов не работает
-        if request.method in ('DELETE', 'POST'):
-            return Response({"Метод не разрешен."},
-                            status=status.HTTP_405_METHOD_NOT_ALLOWED)
         user = self.request.user
         serializer = self.get_serializer(user)
-        if request.method == 'PATCH':
+        if request.method == "PATCH":
             serializer = self.get_serializer(
                 user, data=request.data, partial=True
             )
-            if serializer.is_valid():
-                serializer.save()
-                return Response(serializer.data)
-            return Response(serializer.errors, status=400)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            return Response(serializer.data)
         return Response(serializer.data)
 
 
 class CategoryViewSet(GetListCreateDeleteViewSet):
     """Получение списка всех категорий."""
 
-    queryset = Category.objects.all().order_by('name')
+    queryset = Category.objects.all().order_by("name")
     serializer_class = CategorySerializer
 
 
 class GenreViewSet(GetListCreateDeleteViewSet):
     """Получение списка всех жанров."""
 
-    queryset = Genre.objects.all().order_by('name')
+    queryset = Genre.objects.all().order_by("name")
     serializer_class = GenreSerializer
 
 
@@ -125,8 +114,8 @@ class TitleViewSet(viewsets.ModelViewSet):
     """Получение списка всех произведений."""
 
     queryset = Title.objects.all().annotate(
-        rating=Avg('reviews__score')
-    ).order_by('-year')
+        rating=Avg("reviews__score")
+    ).order_by("-year")
     serializer_class = TitleSerializer
     permission_classes = (IsAdminOrReadOnly,)
     filter_backends = (DjangoFilterBackend,)
@@ -145,7 +134,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
         """Получаем соответствующий Title."""
         return get_object_or_404(
             Title,
-            id=self.kwargs.get('title_id')
+            id=self.kwargs.get("title_id")
         )
 
     def get_queryset(self):
@@ -165,8 +154,8 @@ class CommentViewSet(viewsets.ModelViewSet):
     def get_review(self):
         return get_object_or_404(
             Review,
-            id=self.kwargs.get('review_id'),
-            title=self.kwargs.get('title_id')
+            id=self.kwargs.get("review_id"),
+            title=self.kwargs.get("title_id")
         )
 
     def get_queryset(self):
