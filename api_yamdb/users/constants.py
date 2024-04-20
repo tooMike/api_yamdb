@@ -7,9 +7,9 @@ from django.utils.translation import gettext_lazy as _
 class Roles(models.TextChoices):
     """Возможные роли пользователей."""
 
-    USER = 'user', _('User')
-    MODERATOR = 'moderator', _('Moderator')
-    ADMIN = 'admin', _('Admin')
+    USER = "user", _("User")
+    MODERATOR = "moderator", _("Moderator")
+    ADMIN = "admin", _("Admin")
 
 
 # Количество символов кода подтверждения

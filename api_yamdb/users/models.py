@@ -14,22 +14,22 @@ class YamdbUser(AbstractUser):
         unique=True,
         validators=(username_validator,)
     )
-    bio = models.TextField('Биография', blank=True)
+    bio = models.TextField("Биография", blank=True)
     role = models.CharField(
-        'Роль',
+        "Роль",
         max_length=ROLE_MAX_LENGTH,
         choices=Roles.choices,
         default=Roles.USER
     )
-    email = models.EmailField('email address', unique=True)
+    email = models.EmailField("email address", unique=True)
     confirmation_code = models.CharField(
         max_length=CONFIRMATION_CODE_MAX_LENGTH
     )
 
     class Meta:
-        verbose_name = 'пользователь'
-        verbose_name_plural = 'Пользователи'
-        ordering = ('username',)
+        verbose_name = "пользователь"
+        verbose_name_plural = "Пользователи"
+        ordering = ("username",)
 
     @property
     def is_admin(self):

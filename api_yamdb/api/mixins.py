@@ -13,6 +13,6 @@ class GetListCreateDeleteViewSet(
     """ViewSet для методов Get, List, Create, Delete."""
 
     filter_backends = (SearchFilter,)
-    search_fields = ('name', )
-    lookup_field = 'slug'
+    search_fields = ("name",)
+    lookup_field = "slug"
     permission_classes = (IsAdminOrReadOnly,)

@@ -5,22 +5,22 @@ from .models import Category, Comment, Genre, GenreTitle, Review, Title
 
 class CategoryAdmin(admin.ModelAdmin):
     list_display = (
-        'name',
-        'slug',
+        "name",
+        "slug",
     )
-    search_fields = ('name',)
-    list_filter = ('slug',)
-    list_display_links = ('name',)
+    search_fields = ("name",)
+    list_filter = ("slug",)
+    list_display_links = ("name",)
 
 
 class GenreAdmin(admin.ModelAdmin):
     list_display = (
-        'name',
-        'slug',
+        "name",
+        "slug",
     )
-    search_fields = ('name',)
-    list_filter = ('slug',)
-    list_display_links = ('name',)
+    search_fields = ("name",)
+    list_filter = ("slug",)
+    list_display_links = ("name",)
 
 
 class GenreInline(admin.TabularInline):
@@ -30,13 +30,13 @@ class GenreInline(admin.TabularInline):
 
 class TitleAdmin(admin.ModelAdmin):
     list_display = (
-        'name',
-        'category',
-        'year',
+        "name",
+        "category",
+        "year",
     )
-    search_fields = ('name',)
-    list_filter = ('category',)
-    list_display_links = ('name',)
+    search_fields = ("name",)
+    list_filter = ("category",)
+    list_display_links = ("name",)
     inlines = (GenreInline,)
 
 

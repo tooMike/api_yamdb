@@ -39,14 +39,14 @@ class UserAuthSerializer(serializers.Serializer):
         if user_by_username:
             # Если пользователь с таким username найден, проверяем его email
             if user_by_username.email != email:
-                errors['username'] = ("Пользователь с этим username "
+                errors["username"] = ("Пользователь с этим username "
                                       "уже существует с другим email.")
                 # Проверяем дополнительно, занят ли переданный email
                 if user_by_email:
-                    errors['email'] = "Этот email уже занят."
+                    errors["email"] = "Этот email уже занят."
 
         if not user_by_username and user_by_email:
-            errors['email'] = "Этот email уже занят."
+            errors["email"] = "Этот email уже занят."
 
         if errors:
             raise ValidationError(errors)

@@ -13,13 +13,13 @@ User = get_user_model()
 class BasePost(models.Model):
     """Базовая абстрактная модель для наследования в ревью и комментариях."""
     author = models.ForeignKey(
-        to=User, on_delete=models.CASCADE, verbose_name='Автор'
+        to=User, on_delete=models.CASCADE, verbose_name="Автор"
     )
-    text = models.TextField(verbose_name='Текст')
+    text = models.TextField(verbose_name="Текст")
     pub_date = models.DateTimeField(
-        verbose_name='Опубликовано', auto_now_add=True
+        verbose_name="Опубликовано", auto_now_add=True
     )
-    edited_date = models.DateTimeField(verbose_name='Изменено', auto_now=True)
+    edited_date = models.DateTimeField(verbose_name="Изменено", auto_now=True)
 
     class Meta:
         abstract = True
@@ -30,7 +30,7 @@ class BasePost(models.Model):
 
 class ModelForCategoryGenre(models.Model):
     """Базовая абстрактная модель для наследования в категориях и жанрах."""
-    name = models.CharField(max_length=NAME_MAX_LENGTH, verbose_name='Имя')
+    name = models.CharField(max_length=NAME_MAX_LENGTH, verbose_name="Имя")
     slug = models.SlugField(max_length=SLUG_MAX_LENGTH, unique=True)
 
     class Meta:
@@ -43,44 +43,44 @@ class ModelForCategoryGenre(models.Model):
 class Category(ModelForCategoryGenre):
     """Модель категорий"""
     class Meta:
-        verbose_name = 'категория'
-        verbose_name_plural = 'Категории'
+        verbose_name = "категория"
+        verbose_name_plural = "Категории"
 
 
 class Genre(ModelForCategoryGenre):
     """Модель жанров"""
     class Meta:
-        verbose_name = 'жанр'
-        verbose_name_plural = 'Жанры'
+        verbose_name = "жанр"
+        verbose_name_plural = "Жанры"
 
 
 class Title(models.Model):
     """Модель произведений"""
-    name = models.CharField(max_length=NAME_MAX_LENGTH, verbose_name='Имя')
+    name = models.CharField(max_length=NAME_MAX_LENGTH, verbose_name="Имя")
     year = models.PositiveSmallIntegerField(
         validators=[validate_year],
-        verbose_name='Год'
+        verbose_name="Год"
     )
     description = models.TextField(
         blank=True,
-        verbose_name='Описание'
+        verbose_name="Описание"
     )
     genre = models.ManyToManyField(
         Genre,
-        through='GenreTitle',
-        verbose_name='Жанр'
+        through="GenreTitle",
+        verbose_name="Жанр"
     )
     category = models.ForeignKey(
         Category,
         on_delete=models.SET_NULL,
         null=True,
-        related_name='titles',
-        verbose_name='Категория'
+        related_name="titles",
+        verbose_name="Категория"
     )
 
     class Meta:
-        verbose_name = 'произведение'
-        verbose_name_plural = 'Произведения'
+        verbose_name = "произведение"
+        verbose_name_plural = "Произведения"
 
     def __str__(self):
         return self.name
@@ -90,32 +90,32 @@ class Review(BasePost):
     """Модель Ревью"""
     title = models.ForeignKey(
         to=Title,
-        verbose_name='Произведение',
+        verbose_name="Произведение",
         on_delete=models.CASCADE,
     )
     score = models.PositiveSmallIntegerField(
-        verbose_name='Оценка',
+        verbose_name="Оценка",
         validators=[
             MaxValueValidator(
                 limit_value=SCORE_MAX_VALUE,
-                message='Оценка не может быть больше 10 баллов'
+                message="Оценка не может быть больше 10 баллов"
             ),
             MinValueValidator(
                 limit_value=SCORE_MIN_VALUE,
-                message='Оценка не может быть меньше 1го балла'
+                message="Оценка не может быть меньше 1го балла"
             )
         ]
     )
 
     class Meta:
         constraints = [models.UniqueConstraint(
-            fields=['title', 'author'],
-            name='Only_one_review_from_author_for_title'
+            fields=["title", "author"],
+            name="Only_one_review_from_author_for_title"
         )]
-        verbose_name = 'отзыв'
-        verbose_name_plural = 'Отзывы'
-        default_related_name = 'reviews'
-        ordering = ('pub_date',)
+        verbose_name = "отзыв"
+        verbose_name_plural = "Отзывы"
+        default_related_name = "reviews"
+        ordering = ("pub_date",)
 
 
 class Comment(BasePost):
@@ -123,15 +123,15 @@ class Comment(BasePost):
     review = models.ForeignKey(
         to=Review,
         on_delete=models.CASCADE,
-        verbose_name='Отзыв',
-        related_name='comments'
+        verbose_name="Отзыв",
+        related_name="comments"
     )
 
     class Meta:
-        verbose_name = 'комментарий'
-        verbose_name_plural = 'Комментарии'
-        default_related_name = 'comments'
-        ordering = ('pub_date',)
+        verbose_name = "комментарий"
+        verbose_name_plural = "Комментарии"
+        default_related_name = "comments"
+        ordering = ("pub_date",)
 
 
 class GenreTitle(models.Model):
@@ -140,4 +140,4 @@ class GenreTitle(models.Model):
     title = models.ForeignKey(Title, on_delete=models.CASCADE)
 
     def __str__(self):
-        return f'{self.genre} {self.title}'
+        return f"{self.genre} {self.title}"
