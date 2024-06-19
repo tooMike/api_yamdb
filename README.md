@@ -2,6 +2,10 @@
 
 Проект YaMDb собирает отзывы пользователей на произведения.
 
+Проект запущен и доступен по адресу: https://gobizloans.com/
+
+Документация к API доступна здесь: https://gobizloans.com/redoc/
+
 # Авторы проекта
 
 [Mikhail](https://github.com/tooMike)
@@ -20,36 +24,28 @@ git clone https://github.com/tooMike/api_yamdb
 cd api_yamdb
 ```
 
-Cоздать и активировать виртуальное окружение:
+Запустить сборку проекта:
 
 ```
-python3 -m venv env
+docker compose up
 ```
 
-```
-source env/bin/activate
-```
-
-Установить зависимости из файла requirements.txt:
+Выполнить сбор статики в контейнере backend:
 
 ```
-python3 -m pip install --upgrade pip
+docker compose exec backend python manage.py collectstatic
 ```
 
-```
-pip install -r requirements.txt
-```
-
-Выполнить миграции:
+Выполнить миграции в контейнере backend:
 
 ```
-python3 manage.py migrate
+docker compose exec backend python manage.py migrate
 ```
 
-Запустить проект:
+Проект будет доступен по адресу
 
 ```
-python3 manage.py runserver
+http://127.0.0.1:8000/
 ```
 
 # Спецификация
